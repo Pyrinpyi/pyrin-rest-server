@@ -4,7 +4,8 @@ ARG REPO_DIR
 
 EXPOSE 8000
 
-ENV KASPAD_HOST_1=n.seeder1.kaspad.net:16110
+# ENV PYIPAD_HOST_1=n.seeder1.pyrin.net:13110
+ENV PYIPAD_HOST_1=host.docker.internal:16210
 ARG version
 ENV VERSION=$version
 

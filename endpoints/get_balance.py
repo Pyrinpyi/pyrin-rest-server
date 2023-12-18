@@ -3,25 +3,25 @@
 from fastapi import Path, HTTPException
 from pydantic import BaseModel
 
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 
 class BalanceResponse(BaseModel):
-    address: str = "kaspa:pzhh76qc82wzduvsrd9xh4zde9qhp0xc8rl7qu2mvl2e42uvdqt75zrcgpm00"
+    address: str = "pyrin:qqpz0ndsjsmlaxmcp33mqrx263dn4n8x9y67gysfkgws8kqa0w9szz6mzdhcq"
     balance: int = 38240000000
 
 
-@app.get("/addresses/{kaspaAddress}/balance", response_model=BalanceResponse, tags=["Kaspa addresses"])
-async def get_balance_from_kaspa_address(
-        kaspaAddress: str = Path(
-            description="Kaspa address as string e.g. kaspa:pzhh76qc82wzduvsrd9xh4zde9qhp0xc8rl7qu2mvl2e42uvdqt75zrcgpm00",
-            regex="^kaspa\:[a-z0-9]{61,63}$")):
+@app.get("/addresses/{pyrinAddress}/balance", response_model=BalanceResponse, tags=["Pyrin addresses"])
+async def get_balance_from_pyrin_address(
+        pyrinAddress: str = Path(
+            description="Pyrin address as string e.g. pyrin:qqpz0ndsjsmlaxmcp33mqrx263dn4n8x9y67gysfkgws8kqa0w9szz6mzdhcq",
+            regex="^pyrin(?:test)?\:[a-z0-9]{61,63}$")):
     """
-    Get balance for a given kaspa address
+    Get balance for a given pyrin address
     """
-    resp = await kaspad_client.request("getBalanceByAddressRequest",
+    resp = await pyrin_client.request("getBalanceByAddressRequest",
                                        params={
-                                           "address": kaspaAddress
+                                           "address": pyrinAddress
                                        })
 
     try:
@@ -40,6 +40,6 @@ async def get_balance_from_kaspa_address(
         balance = 0
 
     return {
-        "address": kaspaAddress,
+        "address": pyrinAddress,
         "balance": balance
     }

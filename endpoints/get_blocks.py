@@ -8,10 +8,9 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from dbsession import async_session
-from endpoints.get_virtual_chain_blue_score import current_blue_score_data
 from models.Block import Block
 from models.Transaction import Transaction, TransactionOutput, TransactionInput
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 IS_SQL_DB_CONFIGURED = os.getenv("SQL_URI") is not None
 
@@ -61,13 +60,13 @@ class BlockResponse(BaseModel):
     blocks: List[BlockModel] | None
 
 
-@app.get("/blocks/{blockId}", response_model=BlockModel, tags=["Kaspa blocks"])
+@app.get("/blocks/{blockId}", response_model=BlockModel, tags=["Pyrin blocks"])
 async def get_block(response: Response,
                     blockId: str = Path(regex="[a-f0-9]{64}")):
     """
     Get block information for a given block id
     """
-    resp = await kaspad_client.request("getBlockRequest",
+    resp = await pyrin_client.request("getBlockRequest",
                                        params={
                                            "hash": blockId,
                                            "includeTransactions": True
@@ -75,53 +74,38 @@ async def get_block(response: Response,
     requested_block = None
 
     if "block" in resp["getBlockResponse"]:
-        # We found the block in kaspad. Just use it
+        # We found the block in pyrin. Just use it
         requested_block = resp["getBlockResponse"]["block"]
     else:
         if IS_SQL_DB_CONFIGURED:
-            # Didn't find the block in kaspad. Try getting it from the DB
+            # Didn't find the block in pyrin. Try getting it from the DB
             response.headers["X-Data-Source"] = "Database"
             requested_block = await get_block_from_db(blockId)
 
     if not requested_block:
         # Still did not get the block
-        print("hier")
-        raise HTTPException(status_code=404, detail="Block not found", headers={
-            "Cache-Control": "public, max-age=1"
-        })
+        raise HTTPException(status_code=404, detail="Block not found")
 
     # We found the block, now we guarantee it contains the transactions
-    # It's possible that the block from kaspad does not contain transactions
+    # It's possible that the block from pyrin does not contain transactions
     if 'transactions' not in requested_block or not requested_block['transactions']:
         requested_block['transactions'] = await get_block_transactions(blockId)
-
-    if int(requested_block["header"]["blueScore"]) > current_blue_score_data["blue_score"] - 20:
-        response.headers["Cache-Control"] = "public, max-age=1"
-
-    elif int(requested_block["header"]["blueScore"]) > current_blue_score_data["blue_score"] - 60:
-        response.headers["Cache-Control"] = "public, max-age=10"
-
-    else:
-        response.headers["Cache-Control"] = "public, max-age=600"
 
     return requested_block
 
 
-@app.get("/blocks", response_model=BlockResponse, tags=["Kaspa blocks"])
-async def get_blocks(response: Response,
-                     lowHash: str = Query(regex="[a-f0-9]{64}"),
+@app.get("/blocks", response_model=BlockResponse, tags=["Pyrin blocks"])
+async def get_blocks(lowHash: str = Query(regex="[a-f0-9]{64}"),
                      includeBlocks: bool = False,
                      includeTransactions: bool = False):
     """
     Lists block beginning from a low hash (block id). Note that this function tries to determine the blocks from
-    the kaspad node. If this is not possible, the database is getting queryied as backup. In this case the response
+    the pyrin node. If this is not possible, the database is getting queryied as backup. In this case the response
     header contains the key value pair: x-data-source: database.
 
     Additionally the fields in verboseData: isChainBlock, childrenHashes and transactionIds can't be filled.
     """
-    response.headers["Cache-Control"] = "public, max-age=3"
-
-    resp = await kaspad_client.request("getBlocksRequest",
+    resp = await pyrin_client.request("getBlocksRequest",
                                        params={
                                            "lowHash": lowHash,
                                            "includeBlocks": includeBlocks,
@@ -131,19 +115,15 @@ async def get_blocks(response: Response,
     return resp["getBlocksResponse"]
 
 
-@app.get("/blocks-from-bluescore", response_model=List[BlockModel], tags=["Kaspa blocks"])
+@app.get("/blocks-from-bluescore", response_model=List[BlockModel], tags=["Pyrin blocks"])
 async def get_blocks_from_bluescore(response: Response,
                                     blueScore: int = 43679173,
                                     includeTransactions: bool = False):
     """
-    Lists block beginning from a low hash (block id). Note that this function is running on a kaspad and not returning
+    Lists block beginning from a low hash (block id). Note that this function is running on a pyrin and not returning
     data from database.
     """
     response.headers["X-Data-Source"] = "Database"
-
-    if blueScore > current_blue_score_data["blue_score"] - 20:
-        response.headers["Cache-Control"] = "no-store"
-
     blocks = await get_blocks_from_db_by_bluescore(blueScore)
 
     return [{
@@ -195,9 +175,7 @@ async def get_block_from_db(blockId):
         try:
             requested_block = requested_block.first()[0]  # type: Block
         except TypeError:
-            raise HTTPException(status_code=404, detail="Block not found", headers={
-                "Cache-Control": "public, max-age=3"
-            })
+            raise HTTPException(status_code=404, detail="Block not found")
 
     if requested_block:
         return {

@@ -3,10 +3,10 @@ import hashlib
 
 from pydantic import BaseModel
 
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 
-class KaspadInfoResponse(BaseModel):
+class PyipadInfoResponse(BaseModel):
     mempoolSize: str = "1"
     serverVersion: str = "0.12.2"
     isUtxoIndexed: bool = True
@@ -14,12 +14,12 @@ class KaspadInfoResponse(BaseModel):
     p2pIdHashed : str = "36a17cd8644eef34fc7fe4719655e06dbdf117008900c46975e66c35acd09b01"
 
 
-@app.get("/info/kaspad", response_model=KaspadInfoResponse, tags=["Kaspa network info"])
-async def get_kaspad_info():
+@app.get("/info/pyrin", response_model=PyipadInfoResponse, tags=["Pyrin network info"])
+async def get_1_info():
     """
-    Get some information for kaspad instance, which is currently connected.
+    Get some information for pyrin instance, which is currently connected.
     """
-    resp = await kaspad_client.request("getInfoRequest")
+    resp = await pyrin_client.request("getInfoRequest")
     p2p_id = resp["getInfoResponse"].pop("p2pId")
     resp["getInfoResponse"]["p2pIdHashed"] = hashlib.sha256(p2p_id.encode()).hexdigest()
     return resp["getInfoResponse"]

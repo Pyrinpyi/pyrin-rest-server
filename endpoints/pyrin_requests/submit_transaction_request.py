@@ -5,7 +5,7 @@ from typing import List
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 
 class SubmitTxOutpoint(BaseModel):
@@ -50,15 +50,15 @@ class SubmitTransactionResponse(BaseModel):
 
 
 @app.post("/transactions",
-          tags=["Kaspa transactions"],
+          tags=["Pyrin transactions"],
           response_model_exclude_unset=True,
           responses={200: {"model": SubmitTransactionResponse},
                        400: {"model": SubmitTransactionResponse}})
 async def submit_a_new_transaction(body: SubmitTransactionRequest):
     """
-    Forwards the body directly to kaspad with the command submitTransactionRequest
+    Forwards the body directly to pyrin with the command submitTransactionRequest
     """
-    tx_resp = await kaspad_client.request("submitTransactionRequest",
+    tx_resp = await pyrin_client.request("submitTransactionRequest",
                                           params=body.dict())
 
     tx_resp = tx_resp["submitTransactionResponse"]

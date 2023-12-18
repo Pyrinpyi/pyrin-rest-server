@@ -20,7 +20,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: supertypo/kaspa-rest-server:${{github.ref_name}}, supertypo/kaspa-rest-server:latest
+          tags: supertypo/pyrin-rest-server:${{github.ref_name}}, supertypo/pyrin-rest-server:latest
           file: ./docker/Dockerfile
           build-args: |
             version=${{github.ref_name}}

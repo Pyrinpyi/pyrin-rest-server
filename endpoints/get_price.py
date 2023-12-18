@@ -11,10 +11,10 @@ class PriceResponse(BaseModel):
     price: float = 0.025235
 
 
-@app.get("/info/price", response_model=PriceResponse | str, tags=["Kaspa network info"])
+@app.get("/info/price", response_model=PriceResponse | str, tags=["Pyrin network info"])
 async def get_price(stringOnly: bool = False):
     """
-    Returns the current price for Kaspa in USD.
+    Returns the current price for Pyrin in USD.
     """
     if stringOnly:
         return PlainTextResponse(content=str(await get_kas_price()))
@@ -23,10 +23,10 @@ async def get_price(stringOnly: bool = False):
 
 
 @app.get("/info/market-data",
-         tags=["Kaspa network info"],
+         tags=["Pyrin network info"],
          include_in_schema=False)
 async def get_market_data():
     """
-    Returns market data for kaspa.
+    Returns market data for pyrin.
     """
     return await get_kas_market_data()

@@ -5,7 +5,7 @@ from typing import List
 from fastapi import Path, HTTPException
 from pydantic import BaseModel
 
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 
 class OutpointModel(BaseModel):
@@ -24,24 +24,24 @@ class UtxoModel(BaseModel):
 
 
 class UtxoResponse(BaseModel):
-    address: str = "kaspa:qrzk988gtanp3nf76xkpexwud5cxfmfygqf42hz38pwea74s6qrj75jee85nj"
+    address: str = "pyrin:qrzk988gtanp3nf76xkpexwud5cxfmfygqf42hz38pwea74s6qrj75jee85nj"
     outpoint: OutpointModel
     utxoEntry: UtxoModel
 
 
-@app.get("/addresses/{kaspaAddress}/utxos", response_model=List[UtxoResponse], tags=["Kaspa addresses"])
-async def get_utxos_for_address(kaspaAddress: str = Path(
-    description="Kaspa address as string e.g. kaspa:qqkqkzjvr7zwxxmjxjkmxxdwju9kjs6e9u82uh59z07vgaks6gg62v8707g73",
-    regex="^kaspa\:[a-z0-9]{61,63}$")):
+@app.get("/addresses/{pyrinAddress}/utxos", response_model=List[UtxoResponse], tags=["Pyrin addresses"])
+async def get_utxos_for_address(pyrinAddress: str = Path(
+    description="Pyrin address as string e.g. pyrin:qqkqkzjvr7zwxxmjxjkmxxdwju9kjs6e9u82uh59z07vgaks6gg62v8707g73",
+    regex="^pyrin(?:test)?\:[a-z0-9]{61,63}$")):
     """
-    Lists all open utxo for a given kaspa address
+    Lists all open utxo for a given pyrin address
     """
-    resp = await kaspad_client.request("getUtxosByAddressesRequest",
+    resp = await pyrin_client.request("getUtxosByAddressesRequest",
                                        params={
-                                           "addresses": [kaspaAddress]
+                                           "addresses": [pyrinAddress]
                                        }, timeout=120)
     try:
-        return (utxo for utxo in resp["getUtxosByAddressesResponse"]["entries"] if utxo["address"] == kaspaAddress)
+        return (utxo for utxo in resp["getUtxosByAddressesResponse"]["entries"] if utxo["address"] == pyrinAddress)
     except KeyError:
         if "getUtxosByAddressesResponse" in resp and "error" in resp["getUtxosByAddressesResponse"]:
             raise HTTPException(status_code=400, detail=resp["getUtxosByAddressesResponse"]["error"])

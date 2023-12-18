@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from starlette.responses import PlainTextResponse
 
 from helper.deflationary_table import DEFLATIONARY_TABLE
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 
 class HalvingResponse(BaseModel):
@@ -15,12 +15,12 @@ class HalvingResponse(BaseModel):
     nextHalvingAmount: float = 155.123123
 
 
-@app.get("/info/halving", response_model=HalvingResponse | str, tags=["Kaspa network info"])
+@app.get("/info/halving", response_model=HalvingResponse | str, tags=["Pyrin network info"])
 async def get_halving(field: str | None = None):
     """
     Returns information about chromatic halving
     """
-    resp = await kaspad_client.request("getBlockDagInfoRequest")
+    resp = await pyrin_client.request("getBlockDagInfoRequest")
     daa_score = int(resp["getBlockDagInfoResponse"]["virtualDaaScore"])
 
     future_reward = 0

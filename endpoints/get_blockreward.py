@@ -3,19 +3,19 @@
 from pydantic import BaseModel
 
 from helper.deflationary_table import DEFLATIONARY_TABLE
-from server import app, kaspad_client
+from server import app, pyrin_client
 
 
 class BlockRewardResponse(BaseModel):
     blockreward: float = 12000132
 
 
-@app.get("/info/blockreward", response_model=BlockRewardResponse | str, tags=["Kaspa network info"])
+@app.get("/info/blockreward", response_model=BlockRewardResponse | str, tags=["Pyrin network info"])
 async def get_blockreward(stringOnly: bool = False):
     """
     Returns the current blockreward in KAS/block
     """
-    resp = await kaspad_client.request("getBlockDagInfoRequest")
+    resp = await pyrin_client.request("getBlockDagInfoRequest")
     daa_score = int(resp["getBlockDagInfoResponse"]["virtualDaaScore"])
 
     reward = 0

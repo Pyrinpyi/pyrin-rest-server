@@ -1,9 +1,9 @@
 version: "3"
 
 services:
-  kaspa_explorer:
-    container_name: kaspa_explorer
-    image: supertypo/kaspa-explorer:latest
+  pyrin_explorer:
+    container_name: pyrin_explorer
+    image: supertypo/pyrin-explorer:latest
     restart: unless-stopped
     environment:
       API_URI: "http://localhost:8000"
@@ -11,29 +11,29 @@ services:
     ports:
       - "8080:8080/tcp"
 
-  kaspa_rest_server:
-    container_name: kaspa_rest_server
-    image: supertypo/kaspa-rest-server:latest
+  pyrin_rest_server:
+    container_name: pyrin_rest_server
+    image: supertypo/pyrin-rest-server:latest
     restart: unless-stopped
     environment:
-      KASPAD_HOST_1: kaspad:16110
+      PYIPAD_HOST_1: pyrin:13110
       SQL_URI: postgresql+asyncpg://postgres:postgres@postgresql:5432/postgres
     ports:
       - "8000:8000/tcp"
     links:
-      - kaspad
+      - pyrin
       - postgresql
 
-  kaspa_db_filler:
-    container_name: kaspa_db_filler
-    image: supertypo/kaspa-db-filler:latest
+  pyrin_db_filler:
+    container_name: pyrin_db_filler
+    image: supertypo/pyrin-db-filler:latest
     restart: unless-stopped
     environment:
       DEBUG: "true"
-      KASPAD_HOST_1: kaspad:16110
+      PYIPAD_HOST_1: pyrin:13110
       SQL_URI: postgresql://postgres:postgres@postgresql:5432/postgres
     links:
-      - kaspad
+      - pyrin
       - postgresql
 
   postgresql:
@@ -49,17 +49,17 @@ services:
     volumes:
       - postgresql:/var/lib/postgresql/data/
 
-  kaspad:
-    container_name: kaspad
-    image: supertypo/kaspad:latest
+  pyrin:
+    container_name: pyrin
+    image: supertypo/pyrin:latest
     restart: unless-stopped
     ports:
-      - "16110:16110/tcp"
-      - "16111:16111/tcp"
+      - "13110:13110/tcp"
+      - "13111:13111/tcp"
     volumes:
-      - kaspad:/app/data/
-    command: kaspad --utxoindex --connect=kdxweb.kaspacalc.net
+      - pyrin:/app/data/
+    command: pyrin --utxoindex --connect=kdxweb.pyrincalc.net
 
 volumes:
   postgresql:
-  kaspad:
+  pyrin:
